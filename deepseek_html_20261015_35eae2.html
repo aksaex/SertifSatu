@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SertifSatu — Generator Sertifikat Otomatis</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          serif: ['"Playfair Display"', 'Georgia', 'serif']
+        },
+        colors: {
+          brand: {
+            50: '#eef4ff', 100: '#dbe6ff', 200: '#bdd0ff', 300: '#90b0ff',
+            400: '#5b83fd', 500: '#365df7', 600: '#203eea', 700: '#1a2fd4',
+            800: '#1c2bab', 900: '#1d2b86'
+          },
+          gold: { 400: '#d9b45f', 500: '#c39b3f', 600: '#a67f2c' }
+        },
+        boxShadow: {
+          soft: '0 10px 40px -12px rgba(15,23,42,0.18)',
+          glow: '0 0 0 1px rgba(32,62,234,0.08), 0 18px 50px -18px rgba(32,62,234,0.45)'
+        }
+      }
+    }
+  }
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { -webkit-font-smoothing: antialiased; }
+  .fade-in { animation: fadeIn .45s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .check-circle { stroke-dasharray: 151; stroke-dashoffset: 151; animation: draw .7s ease forwards; }
+  .check-mark { stroke-dasharray: 52; stroke-dashoffset: 52; animation: draw .4s .6s ease forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .grid-bg {
+    background-image: radial-gradient(rgba(32,62,234,0.10) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+</style>
+</head>
+<body class="font-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+<header class="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-slate-200/70">
+  <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+    <button data-nav="view-admin" class="flex items-center gap-3 text-left">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 grid place-items-center shadow-glow">
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2l2.4 5.2 5.6.7-4.1 3.9 1 5.6L12 14.8 7.1 17.4l1-5.6L4 7.9l5.6-.7L12 2z"/>
+        </svg>
+      </div>
+      <div class="leading-tight">
+        <p class="font-extrabold tracking-tight text-slate-900">SertifSatu</p>
+        <p class="text-[11px] text-slate-500 -mt-0.5 hidden sm:block">Digital Credential Platform</p>
+      </div>
+    </button>
+    <nav class="flex items-center gap-1 bg-slate-100 rounded-full p-1">
+      <button data-nav="view-admin" class="nav-pill px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition">Admin</button>
+      <button data-nav="view-claim" class="nav-pill px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition">Peserta</button>
+      <button data-nav="view-verify" class="nav-pill px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition">Verifikasi</button>
+    </nav>
+  </div>
+</header>
+
+<main class="flex-1">
+
+  <section id="view-admin" class="view">
+    <div class="relative overflow-hidden">
+      <div class="absolute inset-0 grid-bg opacity-60 pointer-events-none"></div>
+      <div class="relative max-w-6xl mx-auto px-5 pt-10 pb-8 md:pt-14 md:pb-10">
+        <span class="inline-flex items-center gap-2 text-[11px] font-bold tracking-wider uppercase text-brand-700 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Langkah 1 dari 3 · Dasbor Panitia
+        </span>
+        <h1 class="mt-5 text-3xl md:text-[42px] leading-[1.1] font-extrabold tracking-tight text-slate-900 max-w-2xl">
+          Buat event, bagikan <span class="text-brand-600">satu link</span>. Sertifikat terbit sendiri.
+        </h1>
+        <p class="mt-4 text-slate-500 max-w-2xl text-base md:text-lg">
+          Peserta mengklaim sertifikatnya masing-masing lewat sistem Self-Claim. Verifikasi publik dilakukan lewat QR code. Tanpa antre, tanpa kirim file satu per satu.
+        </p>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-5 pb-16">
+      <div class="grid lg:grid-cols-5 gap-6 items-start">
+
+        <div class="lg:col-span-3 bg-white rounded-2xl shadow-soft border border-slate-200/70 p-6 md:p-8">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Buat Event Baru</h2>
+              <p class="text-sm text-slate-500">Isi detail acara dan unggah template sertifikat.</p>
+            </div>
+          </div>
+
+          <form id="eventForm" class="mt-7 space-y-5">
+            <div>
+              <label for="inputEventName" class="block text-sm font-semibold text-slate-700 mb-2">Nama Event</label>
+              <input id="inputEventName" type="text" required placeholder="Contoh: Seminar Nasional AI 2025"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition">
+            </div>
+
+            <div>
+              <label for="inputEventDate" class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Pelaksanaan</label>
+              <input id="inputEventDate" type="date" required
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition">
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">
+                Template Sertifikat <span class="text-slate-400 font-normal">(opsional)</span>
+              </label>
+              <label for="inputTemplate"
+                class="flex items-center gap-4 cursor-pointer rounded-xl border-2 border-dashed border-slate-200 hover:border-brand-400 hover:bg-brand-50/40 px-4 py-5 transition">
+                <div class="w-11 h-11 shrink-0 rounded-lg bg-brand-50 text-brand-600 grid place-items-center">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M12 3v13"/><path d="M7 8l5-5 5 5"/>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <p id="fileName" class="text-sm font-semibold text-slate-700 truncate">Upload Template</p>
+                  <p class="text-xs text-slate-400">PNG / JPG · rasio landscape disarankan</p>
+                </div>
+              </label>
+              <input id="inputTemplate" type="file" accept="image/*" class="hidden">
+            </div>
+
+            <button type="submit"
+              class="w-full rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 shadow-glow transition active:scale-[.99]">
+              Buat Event &amp; Generate Link Klaim
+            </button>
+          </form>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+
+          <div id="emptyState" class="bg-white rounded-2xl shadow-soft border border-slate-200/70 p-7 text-center">
+            <div class="mx-auto w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 grid place-items-center text-slate-300">
+              <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20v.01M20 20v.01M17 20v.01M20 17v.01"/>
+              </svg>
+            </div>
+            <p class="mt-4 font-bold text-slate-800">Belum ada event</p>
+            <p class="mt-1.5 text-sm text-slate-500 leading-relaxed">Setelah event dibuat, link klaim dan QR verifikasi akan muncul di sini secara otomatis.</p>
+          </div>
+
+          <div id="resultPanel" class="hidden bg-white rounded-2xl shadow-soft border border-slate-200/70 p-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 shrink-0 rounded-full bg-emerald-50 grid place-items-center text-emerald-600">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+              <div>
+                <p class="font-bold text-slate-900 leading-tight">Event berhasil dibuat</p>
+                <p class="text-xs text-slate-500">Link klaim siap dibagikan</p>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Link Klaim Peserta</p>
+              <div class="mt-2 flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-200 p-2 pl-4">
+                <span id="claimUrl" class="text-sm font-medium text-brand-700 truncate flex-1">sertifsatu.id/claim/event123</span>
+                <button id="copyBtn" type="button"
+                  class="shrink-0 rounded-lg bg-white border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                  Salin
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-col items-center rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+              <canvas id="qrCanvas" width="232" height="232" class="w-40 h-40 rounded-xl bg-white p-2.5 shadow-sm cursor-pointer ring-1 ring-slate-200"></canvas>
+              <p class="mt-3 text-xs text-slate-500 text-center">Scan untuk verifikasi publik<br><span class="text-slate-400">(klik QR untuk membuka halaman verifikasi)</span></p>
+            </div>
+
+            <button id="simulateBtn" type="button"
+              class="mt-6 w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 transition active:scale-[.99]">
+              Simulasikan Sebagai Peserta →
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-claim" class="view hidden">
+    <div class="max-w-4xl mx-auto px-5 py-10 md:py-16">
+      <div class="text-center max-w-2xl mx-auto">
+        <span class="inline-flex items-center gap-2 text-[11px] font-bold tracking-wider uppercase text-brand-700 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Langkah 2 dari 3 · Self-Claim
+        </span>
+        <h1 class="mt-5 text-3xl md:text-[38px] leading-tight font-extrabold tracking-tight text-slate-900">
+          Klaim Sertifikat: <span id="claimEventName" class="text-brand-600">Event Anda</span>
+        </h1>
+        <p class="mt-4 text-slate-500">Ketik nama lengkap Anda, lalu sertifikat akan tergenerate otomatis dalam hitungan detik.</p>
+      </div>
+
+      <div class="mt-9 max-w-2xl mx-auto bg-white rounded-2xl shadow-soft border border-slate-200/70 p-6 md:p-8">
+        <label for="inputName" class="block text-sm font-semibold text-slate-700 mb-3">Nama Lengkap</label>
+        <input id="inputName" type="text" autocomplete="off" placeholder="Ketik Nama Lengkap Anda"
+          class="w-full text-center text-lg md:text-xl font-semibold rounded-xl border-2 border-slate-200 bg-slate-50/70 px-4 py-5 text-slate-900 outline-none focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/10 transition placeholder:font-normal placeholder:text-slate-400">
+        <p id="nameError" class="hidden mt-2.5 text-sm font-medium text-rose-600">Nama tidak boleh kosong.</p>
+
+        <button id="generateBtn" type="button"
+          class="mt-5 w-full rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 shadow-glow transition active:scale-[.99]">
+          Generate Sertifikat
+        </button>
+        <p class="mt-3.5 text-center text-xs text-slate-400">⚡ Rata-rata waktu klaim: 12 detik</p>
+      </div>
+
+      <div id="canvasWrap" class="hidden mt-10">
+        <div class="rounded-2xl bg-white p-3 md:p-4 shadow-soft border border-slate-200/70">
+          <canvas id="certCanvas" width="1200" height="850" class="w-full h-auto rounded-xl block"></canvas>
+        </div>
+        <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+          <button id="downloadBtn" type="button"
+            class="rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold px-7 py-3.5 shadow-lg transition active:scale-[.99]">
+            ⬇ Download Sertifikat
+          </button>
+          <button id="goVerifyBtn" type="button"
+            class="rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold px-7 py-3.5 border border-slate-200 shadow-sm transition active:scale-[.99]">
+            Lihat Halaman Verifikasi Publik
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-verify" class="view hidden">
+    <div class="max-w-3xl mx-auto px-5 py-10 md:py-16">
+      <div class="text-center">
+        <span class="inline-flex items-center gap-2 text-[11px] font-bold tracking-wider uppercase text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Langkah 3 dari 3 · Verifikasi Publik
+        </span>
+      </div>
+
+      <div class="mt-6 bg-white rounded-2xl shadow-soft border border-slate-200/70 overflow-hidden">
+        <div class="bg-gradient-to-b from-emerald-50 to-white px-6 pt-10 pb-8 text-center border-b border-slate-100">
+          <div class="mx-auto w-24 h-24 rounded-full bg-emerald-100/80 grid place-items-center">
+            <svg id="checkSvg" viewBox="0 0 52 52" class="w-14 h-14">
+              <circle class="check-circle" cx="26" cy="26" r="24" fill="none" stroke="#10b981" stroke-width="2.5"/>
+              <path class="check-mark" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14.5 27.2l7.8 7.8L37.8 19.6"/>
+            </svg>
+          </div>
+          <h1 class="mt-6 text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Sertifikat Valid &amp; Terverifikasi</h1>
+          <p class="mt-2.5 text-sm text-slate-500 max-w-md mx-auto">Dokumen ini terdaftar resmi pada sistem kredensial digital SertifSatu dan tidak dapat dimodifikasi.</p>
+        </div>
+
+        <div class="p-6 md:p-8 grid sm:grid-cols-2 gap-x-8 gap-y-7">
+          <div class="sm:col-span-2">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Nama Peserta</p>
+            <p id="vName" class="mt-1.5 text-2xl font-extrabold text-slate-900">Nama Peserta</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Nama Event</p>
+            <p id="vEvent" class="mt-1.5 text-base font-semibold text-slate-800">Nama Event</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tanggal Terbit</p>
+            <p id="vDate" class="mt-1.5 text-base font-semibold text-slate-800">-</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">ID Sertifikat</p>
+            <p id="vCertId" class="mt-1.5 text-base font-mono font-semibold text-slate-800">SS-0000-XXXXXX</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Status</p>
+            <p class="mt-1.5">
+              <span class="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div class="px-6 md:px-8 pb-8">
+          <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 flex items-start gap-3">
+            <div class="w-9 h-9 shrink-0 rounded-lg bg-white border border-slate-200 grid place-items-center text-slate-500">
+              <svg class="w-4.5 h-4.5" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2l8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>
+              </svg>
+            </div>
+            <div class="text-xs leading-relaxed text-slate-500">
+              Kode verifikasi: <span id="vCode" class="font-mono font-semibold text-slate-700">sertifsatu.id/v/XYZ123</span><br>
+              Halaman ini merupakan bukti sah bahwa pemegang sertifikat telah terdaftar pada penyelenggara event.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="mt-8 text-center text-xs text-slate-400">
+        Sistem Kredensial Digital didukung oleh <span class="font-bold text-slate-600">SertifSatu</span>.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-slate-200/70 bg-white/60">
+  <div class="max-w-6xl mx-auto px-5 py-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+    <p class="text-xs text-slate-400">© 2025 SertifSatu — Prototipe MVP untuk Business Plan Competition.</p>
+    <p class="text-xs text-slate-400">Generator Sertifikat Otomatis · Self-Claim · Verifikasi QR</p>
+  </div>
+</footer>
+
+<script>
+  const STORAGE_KEY = 'sertifsatu_state_v1';
+
+  const state = {
+    eventName: '',
+    eventDate: '',
+    eventId: '',
+    certId: '',
+    participantName: '',
+    verifyCode: '',
+    publishedAt: ''
+  };
+
+  let templateImage = null;
+  let canvasGenerated = false;
+
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) Object.assign(state, JSON.parse(raw));
+    } catch (e) {}
+  }
+
+  function makeCode(len) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let out = '';
+    for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  function hashStr(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a |= 0;
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '-';
+    const normalized = iso.length === 10 ? iso + 'T00:00:00' : iso;
+    const d = new Date(normalized);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    if (typeof ctx.roundRect === 'function') {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      return;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function drawQR(canvas, seed) {
+    const ctx = canvas.getContext('2d');
+    const N = 25;
+    const QUIET = 2;
+    const total = N + QUIET * 2;
+    const size = canvas.width;
+    const cell = size / total;
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+
+    const rnd = mulberry32(hashStr(seed || 'sertifsatu'));
+    const grid = [];
+    for (let y = 0; y < N; y++) {
+      grid[y] = [];
+      for (let x = 0; x < N; x++) {
+        grid[y][x] = rnd() > 0.52 ? 1 : 0;
+      }
+    }
+
+    const inFinder = (x, y) => (x < 7 && y < 7) || (x >= N - 7 && y < 7) || (x < 7 && y >= N - 7);
+
+    ctx.fillStyle = '#0f172a';
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        if (inFinder(x, y)) continue;
+        if (grid[y][x]) {
+          ctx.fillRect((x + QUIET) * cell, (y + QUIET) * cell, cell + 0.6, cell + 0.6);
+        }
+      }
+    }
+
+    const finders = [[0, 0], [N - 7, 0], [0, N - 7]];
+    finders.forEach(([fx, fy]) => {
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect((fx + QUIET) * cell, (fy + QUIET) * cell, 7 * cell, 7 * cell);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect((fx + 1 + QUIET) * cell, (fy + 1 + QUIET) * cell, 5 * cell, 5 * cell);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect((fx + 2 + QUIET) * cell, (fy + 2 + QUIET) * cell, 3 * cell, 3 * cell);
+    });
+  }
+
+  function drawCertificate() {
+    const canvas = document.getElementById('certCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+
+    if (templateImage && templateImage.width) {
+      const scale = Math.max(W / templateImage.width, H / templateImage.height);
+      const dw = templateImage.width * scale;
+      const dh = templateImage.height * scale;
+      ctx.drawImage(templateImage, (W - dw) / 2, (H - dh) / 2, dw, dh);
+
+      ctx.save();
+      ctx.globalAlpha = 0.93;
+      ctx.fillStyle = '#ffffff';
+      roundRect(ctx, 150, 108, W - 300, H - 250, 26);
+      ctx.fill();
+      ctx.restore();
+    } else {
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, '#ffffff');
+      g.addColorStop(0.55, '#fbfcff');
+      g.addColorStop(1, '#f2f5ff');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      for (let i = -H; i < W; i += 26) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + H, H);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    ctx.strokeStyle = '#c39b3f';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(34, 34, W - 68, H - 68);
+    ctx.strokeStyle = 'rgba(30,41,59,0.16)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(50, 50, W - 100, H - 100);
+
+    ctx.strokeStyle = '#c39b3f';
+    ctx.lineWidth = 3;
+    const cornerLen = 44;
+    const corners = [[50, 50, 1, 1], [W - 50, 50, -1, 1], [50, H - 50, 1, -1], [W - 50, H - 50, -1, -1]];
+    corners.forEach(([cx, cy, sx, sy]) => {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + sy * cornerLen);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx + sx * cornerLen, cy);
+      ctx.stroke();
+    });
+
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = '#a67f2c';
+    ctx.font = '600 26px "Plus Jakarta Sans", sans-serif';
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '10px';
+    ctx.fillText('SERTIFIKAT PENGHARGAAN', W / 2, 192);
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 100, 228);
+    ctx.lineTo(W / 2 + 100, 228);
+    ctx.strokeStyle = '#c39b3f';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = '400 20px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Diberikan dengan bangga kepada', W / 2, 306);
+
+    const name = (state.participantName || 'Nama Peserta').trim();
+    let fontSize = 80;
+    ctx.font = '700 ' + fontSize + 'px "Playfair Display", Georgia, serif';
+    while (ctx.measureText(name).width > W - 420 && fontSize > 30) {
+      fontSize -= 2;
+      ctx.font = '700 ' + fontSize + 'px "Playfair Display", Georgia, serif';
+    }
+    ctx.fillStyle = '#0f172a';
+    ctx.fillText(name, W / 2, 428);
+
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 170, 468);
+    ctx.lineTo(W / 2 + 170, 468);
+    ctx.strokeStyle = '#d9b45f';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = '400 18px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Atas partisipasinya dalam kegiatan', W / 2, 542);
+
+    const eventName = (state.eventName || 'Nama Event').trim();
+    let eventFont = 32;
+    ctx.font = '600 ' + eventFont + 'px "Plus Jakarta Sans", sans-serif';
+    while (ctx.measureText(eventName).width > W - 380 && eventFont > 18) {
+      eventFont -= 1;
+      ctx.font = '600 ' + eventFont + 'px "Plus Jakarta Sans", sans-serif';
+    }
+    ctx.fillStyle = '#1e293b';
+    ctx.fillText(eventName, W / 2, 596);
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = '400 18px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(formatDate(state.eventDate), W / 2, 648);
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '500 16px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Verifikasi: sertifsatu.id/v/' + (state.verifyCode || 'XYZ123'), 72, H - 72);
+
+    ctx.textAlign = 'right';
+    ctx.fillText('ID Sertifikat: ' + (state.certId || 'SS-0000-XXXXXX'), W - 72, H - 72);
+    ctx.textAlign = 'center';
+  }
+
+  const viewIds = ['view-admin', 'view-claim', 'view-verify'];
+
+  function showView(id) {
+    viewIds.forEach(v => {
+      const el = document.getElementById(v);
+      if (!el) return;
+      if (v === id) {
+        el.classList.remove('hidden');
+        el.classList.remove('fade-in');
+        void el.offsetWidth;
+        el.classList.add('fade-in');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+    updateNav(id);
+    if (id === 'view-verify') renderVerify();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateNav(activeId) {
+    document.querySelectorAll('[data-nav]').forEach(btn => {
+      const active = btn.dataset.nav === activeId;
+      btn.className = 'nav-pill px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition ' +
+        (active ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500 hover:text-slate-800');
+    });
+  }
+
+  function restartCheckAnimation() {
+    const old = document.getElementById('checkSvg');
+    if (!old || !old.parentNode) return;
+    const clone = old.cloneNode(true);
+    old.parentNode.replaceChild(clone, old);
+  }
+
+  function renderVerify() {
+    document.getElementById('vName').textContent = state.participantName || 'Nama Peserta';
+    document.getElementById('vEvent').textContent = state.eventName || 'Nama Event';
+    document.getElementById('vDate').textContent = formatDate(state.publishedAt || new Date().toISOString().slice(0, 10));
+    document.getElementById('vCertId').textContent = state.certId || 'SS-0000-XXXXXX';
+    document.getElementById('vCode').textContent = 'sertifsatu.id/v/' + (state.verifyCode || 'XYZ123');
+    restartCheckAnimation();
+  }
+
+  document.querySelectorAll('[data-nav]').forEach(btn => {
+    btn.addEventListener('click', () => showView(btn.dataset.nav));
+  });
+
+  document.getElementById('inputTemplate').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    document.getElementById('fileName').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => { templateImage = img; };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('eventForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('inputEventName').value.trim();
+    const date = document.getElementById('inputEventDate').value;
+    if (!name || !date) return;
+
+    state.eventName = name;
+    state.eventDate = date;
+    state.eventId = 'event' + Math.floor(100 + Math.random() * 900);
+    state.verifyCode = makeCode(6);
+    state.certId = 'SS-' + new Date().getFullYear() + '-' + makeCode(6);
+    state.publishedAt = new Date().toISOString().slice(0, 10);
+    saveState();
+
+    document.getElementById('claimUrl').textContent = 'sertifsatu.id/claim/' + state.eventId;
+    document.getElementById('claimEventName').textContent = state.eventName;
+    drawQR(document.getElementById('qrCanvas'), state.eventId + '|' + state.verifyCode);
+
+    document.getElementById('emptyState').classList.add('hidden');
+    const panel = document.getElementById('resultPanel');
+    panel.classList.remove('hidden');
+    panel.classList.remove('fade-in');
+    void panel.offsetWidth;
+    panel.classList.add('fade-in');
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    const text = document.getElementById('claimUrl').textContent;
+    const btn = this;
+    const done = () => {
+      btn.textContent = 'Tersalin!';
+      setTimeout(() => { btn.textContent = 'Salin'; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(done);
+    } else {
+      done();
+    }
+  });
+
+  document.getElementById('qrCanvas').addEventListener('click', () => {
+    renderVerify();
+    showView('view-verify');
+  });
+
+  document.getElementById('simulateBtn').addEventListener('click', () => {
+    document.getElementById('claimEventName').textContent = state.eventName || 'Event Anda';
+    showView('view-claim');
+    setTimeout(() => document.getElementById('inputName').focus(), 320);
+  });
+
+  document.getElementById('inputName').addEventListener('input', () => {
+    document.getElementById('nameError').classList.add('hidden');
+  });
+
+  document.getElementById('generateBtn').addEventListener('click', () => {
+    const input = document.getElementById('inputName');
+    const name = input.value.trim();
+    const err = document.getElementById('nameError');
+
+    if (!name) {
+      err.classList.remove('hidden');
+      input.focus();
+      return;
+    }
+
+    err.classList.add('hidden');
+    state.participantName = name;
+    if (!state.verifyCode) state.verifyCode = makeCode(6);
+    if (!state.certId) state.certId = 'SS-' + new Date().getFullYear() + '-' + makeCode(6);
+    if (!state.publishedAt) state.publishedAt = new Date().toISOString().slice(0, 10);
+    saveState();
+
+    canvasGenerated = true;
+    drawCertificate();
+
+    const wrap = document.getElementById('canvasWrap');
+    wrap.classList.remove('hidden');
+    wrap.classList.remove('fade-in');
+    void wrap.offsetWidth;
+    wrap.classList.add('fade-in');
+
+    setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+  });
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const canvas = document.getElementById('certCanvas');
+    if (!canvasGenerated) return;
+    const safeName = (state.participantName || 'Peserta').replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+    const link = document.createElement('a');
+    link.download = 'Sertifikat-' + safeName + '.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+
+  document.getElementById('goVerifyBtn').addEventListener('click', () => {
+    renderVerify();
+    showView('view-verify');
+  });
+
+  function init() {
+    loadState();
+
+    if (state.eventName) document.getElementById('inputEventName').value = state.eventName;
+    if (state.eventDate) document.getElementById('inputEventDate').value = state.eventDate;
+    if (state.eventName) document.getElementById('claimEventName').textContent = state.eventName;
+
+    if (state.eventId) {
+      document.getElementById('claimUrl').textContent = 'sertifsatu.id/claim/' + state.eventId;
+      drawQR(document.getElementById('qrCanvas'), state.eventId + '|' + (state.verifyCode || 'XYZ123'));
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('resultPanel').classList.remove('hidden');
+    }
+
+    updateNav('view-admin');
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        if (canvasGenerated) drawCertificate();
+      });
+    }
+  }
+
+  init();
+</script>
+
+</body>
+</html>
